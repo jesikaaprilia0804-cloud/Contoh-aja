@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard EduSmart</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page" onload="initDashboard()">
+  <header class="topbar">
+    <div class="logo-area">
+      <div class="logo-circle">ES</div>
+      <div>
+        <div class="title">EduSmart</div>
+        <div class="subtle" id="welcomeLabel">Dashboard pembelajaran</div>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="dashboard.html" class="menu-btn active">Dashboard</a>
+      <a href="materi.html" class="menu-btn">Materi</a>
+      <a href="quiz.html" class="menu-btn">Quiz</a>
+      <a href="kelas.html" class="menu-btn">Kelas</a>
+      <a href="profil.html" class="menu-btn">Profil</a>
+      <button onclick="logout()" class="btn-logout">Keluar</button>
+    </nav>
+  </header>
+
+  <main class="dashboard-container">
+    <!-- HERO -->
+    <section class="hero-panel">
+      <div>
+        <p class="eyebrow" id="heroBadge">EduSmart • Pembelajaran Digital</p>
+        <h1 id="heroTitle">Semua aktivitas belajar dalam satu tempat.</h1>
+        <p id="heroDesc">
+          Kelola materi, quiz, dan kelas dengan tampilan yang lebih rapi dan mudah dipahami.
+        </p>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-card">
+          <span>📚</span>
+          <strong id="statOne">0 Materi</strong>
+          <p>Konten pembelajaran terbaru</p>
+        </div>
+
+        <div class="stat-card">
+          <span>📝</span>
+          <strong id="statTwo">0 Quiz</strong>
+          <p>Evaluasi yang tersedia</p>
+        </div>
+
+        <div class="stat-card">
+          <span>👥</span>
+          <strong id="statThree">0 Kelas</strong>
+          <p>Aktivitas belajar Anda</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU CEPAT -->
+    <section id="beranda" class="content-section section-shell">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Ringkasan utama</p>
+          <h2>Menu cepat EduSmart</h2>
+        </div>
+      </div>
+
+      <div class="quick-grid" id="quickGrid"></div>
+    </section>
+
+    <!-- MATERI -->
+    <section class="section-shell">
+      <div class="section-header">
+        <div>
+          <h2>📚 Materi Pembelajaran</h2>
+          <p class="muted">Akses modul dan materi terbaru di sini.</p>
+        </div>
+
+        <button
+          id="materiAction"
+          class="btn-buka hidden"
+          type="button"
+          onclick="toggleModal('modalMateri')">
+          + Tambah Materi
+        </button>
+      </div>
+
+      <div id="materiGrid" class="grid-subjects"></div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="content-section section-shell hidden">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Menu quiz</p>
+          <h2>Quiz dan evaluasi</h2>
+        </div>
+        <a class="ghost-btn" href="quiz.html" id="quizAction">Buka bank soal</a>
+      </div>
+
+      <div class="grid-panels" id="quizGrid"></div>
+    </section>
+
+    <!-- KELAS -->
+    <section id="kelas" class="content-section section-shell hidden">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Menu kelas</p>
+          <h2>Ruang kelas aktif</h2>
+        </div>
+        <a class="ghost-btn" href="kelas.html" id="kelasAction">Kelola jadwal</a>
+      </div>
+
+      <div class="grid-panels" id="kelasGrid"></div>
+    </section>
+  </main>
+
+  <!-- MODAL TAMBAH MATERI -->
+  <div id="modalMateri" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Unggah Materi Baru</h3>
+        <button type="button" class="modal-close" onclick="toggleModal('modalMateri')">
+          &times;
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="materiTitle">Judul Materi</label>
+          <input type="text" id="materiTitle" placeholder="Contoh: Aljabar Dasar">
+        </div>
+
+        <div class="form-group">
+          <label for="materiCategory">Kategori Materi</label>
+          <select id="materiCategory">
+            <option value="Modul">Modul</option>
+            <option value="Video">Video</option>
+            <option value="Ringkasan">Ringkasan</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="materiKelas">Pilih Kelas</label>
+          <select id="materiKelas">
+            <option value="">Pilih kelas</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="materiDesc">Deskripsi Singkat</label>
+          <textarea id="materiDesc" rows="3" placeholder="Jelaskan isi materi..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="materiLink">Link Sumber (PDF / YouTube / Drive)</label>
+          <input type="url" id="materiLink" placeholder="https://youtube.com/...">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="ghost-btn" onclick="toggleModal('modalMateri')">
+          Batal
+        </button>
+        <button type="button" class="btn-buka" onclick="tambahMateri()">
+          Publikasikan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
