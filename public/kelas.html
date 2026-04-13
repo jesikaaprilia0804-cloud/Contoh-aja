@@ -1,193 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kelas EduSmart</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="dashboard-page" onload="initKelasPage()">
-  <header class="topbar">
-    <div class="logo-area">
-      <div class="logo-circle">ES</div>
-      <div>
-        <div class="title">EduSmart</div>
-        <div class="subtle">Halaman kelas</div>
-      </div>
-    </div>
-
-    <nav class="menu">
-      <a href="dashboard.html" class="menu-btn">Dashboard</a>
-      <a href="materi.html" class="menu-btn">Materi</a>
-      <a href="quiz.html" class="menu-btn">Quiz</a>
-      <a href="kelas.html" class="menu-btn active">Kelas</a>
-      <a href="profil.html" class="menu-btn">Profil</a>
-      <button type="button" onclick="logout()" class="btn-logout">Keluar</button>
-    </nav>
-  </header>
-
-  <main class="dashboard-container">
-    <section id="kelasMainSection" class="section-shell">
-      <div class="page-head">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelas EduSmart</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dashboard-page" onload="initKelasPage()">
+    <header class="topbar">
+      <div class="logo-area">
+        <div class="logo-circle">ES</div>
         <div>
-          <p class="eyebrow">PUSAT KELAS</p>
-          <h1>Kelas pembelajaran</h1>
-          <p id="kelasRoleLabel">Kelola kelas</p>
+          <div class="title">EduSmart</div>
+          <div class="subtle">Halaman kelas</div>
         </div>
+      </div>
 
-        <div id="kelasGuruControls" style="display:none;">
-          <button class="ghost-btn" type="button" onclick="toggleModal('modalTambahKelas')">
-            Buat kelas
-          </button>
-        </div>
+      <nav class="menu">
+        <a href="dashboard.html" class="menu-btn">Dashboard</a>
+        <a href="materi.html" class="menu-btn">Materi</a>
+        <a href="quiz.html" class="menu-btn">Quiz</a>
+        <a href="kelas.html" class="menu-btn active">Kelas</a>
+        <a href="profil.html" class="menu-btn">Profil</a>
+        <button type="button" onclick="logout()" class="btn-logout">
+          Keluar
+        </button>
+      </nav>
+    </header>
 
-        <div id="kelasSiswaControls" style="display:none; gap:10px; align-items:center; flex-wrap:wrap;">
-          <input
-            type="text"
-            id="inputKodeGabung"
-            placeholder="Masukkan kode kelas"
-            style="padding:10px; min-width:220px; text-transform:uppercase;"
+    <main class="dashboard-container">
+      <section id="kelasMainSection" class="section-shell">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">PUSAT KELAS</p>
+            <h1>Kelas pembelajaran</h1>
+            <p id="kelasRoleLabel">Kelola kelas</p>
+          </div>
+
+          <div id="kelasGuruControls" style="display: none">
+            <button
+              class="ghost-btn"
+              type="button"
+              onclick="toggleModal('modalTambahKelas')"
+            >
+              Buat kelas
+            </button>
+          </div>
+
+          <div
+            id="kelasSiswaControls"
+            style="
+              display: none;
+              gap: 10px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
           >
-          <button class="btn-buka" type="button" onclick="gabungKeKelas()">Gabung</button>
-        </div>
-      </div>
-
-      <div id="kelasGrid" class="feature-grid"></div>
-    </section>
-
-    <section id="detailKelasSection" class="section-shell hidden">
-      <div class="page-head">
-        <div>
-          <p class="eyebrow">DETAIL KELAS</p>
-          <h1 id="detailNamaKelas">Nama Kelas</h1>
-          <p id="detailInfoKelas">Informasi kelas</p>
+            <input
+              type="text"
+              id="inputKodeGabung"
+              placeholder="Masukkan kode kelas"
+              style="padding: 10px; min-width: 220px; text-transform: uppercase"
+            />
+            <button class="btn-buka" type="button" onclick="gabungKeKelas()">
+              Gabung
+            </button>
+          </div>
         </div>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="btnTambahPengumuman" class="ghost-btn" type="button" onclick="toggleModal('modalTambahPengumuman')" style="display:none;">
-            Tambah pengumuman
+        <div id="kelasGrid" class="feature-grid"></div>
+      </section>
+
+      <section id="detailKelasSection" class="section-shell hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">DETAIL KELAS</p>
+            <h1 id="detailNamaKelas">Nama Kelas</h1>
+            <p id="detailInfoKelas">Informasi kelas</p>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <button
+              id="btnTambahPengumuman"
+              class="ghost-btn"
+              type="button"
+              onclick="toggleModal('modalTambahPengumuman')"
+              style="display: none"
+            >
+              Tambah pengumuman
+            </button>
+            <button
+              id="btnTambahJadwal"
+              class="ghost-btn"
+              type="button"
+              onclick="toggleModal('modalTambahJadwal')"
+              style="display: none"
+            >
+              Tambah jadwal
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="feature-grid"
+          style="grid-template-columns: 1fr 1fr; gap: 20px"
+        >
+          <article class="card-subject">
+            <div class="subject-tag">PENGUMUMAN</div>
+            <h3>Pengumuman Kelas</h3>
+            <div id="pengumumanList"></div>
+          </article>
+
+          <article class="card-subject">
+            <div class="subject-tag">JADWAL</div>
+            <h3>Jadwal Kelas</h3>
+            <div id="jadwalList"></div>
+          </article>
+        </div>
+      </section>
+
+      <section
+        id="studentListSection"
+        class="section-shell hidden"
+        style="margin-top: 24px"
+      >
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">DAFTAR SISWA</p>
+            <h2 id="studentSectionTitle">Siswa Kelas</h2>
+            <p id="studentSectionDesc">
+              Pilih tombol “Lihat Siswa” pada salah satu kelas Anda.
+            </p>
+          </div>
+        </div>
+
+        <div id="studentListGrid" class="feature-grid"></div>
+      </section>
+    </main>
+
+    <div id="modalTambahKelas" class="modal-overlay" style="display: none">
+      <div class="modal-box" style="max-width: 500px">
+        <div class="modal-header">
+          <h2>Buat Kelas Baru</h2>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="toggleModal('modalTambahKelas')"
+          >
+            ✕
           </button>
-          <button id="btnTambahJadwal" class="ghost-btn" type="button" onclick="toggleModal('modalTambahJadwal')" style="display:none;">
-            Tambah jadwal
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inputNamaKelas">Nama Kelas</label>
+            <input
+              type="text"
+              id="inputNamaKelas"
+              placeholder="Contoh: IPA 8A"
+            />
+          </div>
+
+          <div class="form-group">
+            <label style="display: flex; gap: 10px; align-items: center">
+              <input type="checkbox" id="inputStatusKelas" checked />
+              Status kelas aktif
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="ghost-btn"
+            onclick="toggleModal('modalTambahKelas')"
+          >
+            Batal
+          </button>
+          <button type="button" class="btn-buka" onclick="simpanKelasBaru()">
+            Simpan
           </button>
         </div>
       </div>
+    </div>
 
-      <div class="feature-grid" style="grid-template-columns:1fr 1fr; gap:20px;">
-        <article class="card-subject">
-          <div class="subject-tag">PENGUMUMAN</div>
-          <h3>Pengumuman Kelas</h3>
-          <div id="pengumumanList"></div>
-        </article>
-
-        <article class="card-subject">
-          <div class="subject-tag">JADWAL</div>
-          <h3>Jadwal Kelas</h3>
-          <div id="jadwalList"></div>
-        </article>
-      </div>
-    </section>
-
-    <section id="studentListSection" class="section-shell hidden" style="margin-top:24px;">
-      <div class="page-head">
-        <div>
-          <p class="eyebrow">DAFTAR SISWA</p>
-          <h2 id="studentSectionTitle">Siswa Kelas</h2>
-          <p id="studentSectionDesc">Pilih tombol “Lihat Siswa” pada salah satu kelas Anda.</p>
-        </div>
-      </div>
-
-      <div id="studentListGrid" class="feature-grid"></div>
-    </section>
-  </main>
-
-  <div id="modalTambahKelas" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:500px;">
-      <div class="modal-header">
-        <h2>Buat Kelas Baru</h2>
-        <button type="button" class="modal-close" onclick="toggleModal('modalTambahKelas')">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="inputNamaKelas">Nama Kelas</label>
-          <input type="text" id="inputNamaKelas" placeholder="Contoh: IPA 8A">
+    <div id="modalTambahPengumuman" class="modal-overlay" style="display: none">
+      <div class="modal-box" style="max-width: 520px">
+        <div class="modal-header">
+          <h2>Tambah Pengumuman</h2>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="toggleModal('modalTambahPengumuman')"
+          >
+            ✕
+          </button>
         </div>
 
-        <div class="form-group">
-          <label style="display:flex; gap:10px; align-items:center;">
-            <input type="checkbox" id="inputStatusKelas" checked>
-            Status kelas aktif
-          </label>
-        </div>
-      </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inputJudulPengumuman">Judul</label>
+            <input
+              type="text"
+              id="inputJudulPengumuman"
+              placeholder="Judul pengumuman"
+            />
+          </div>
 
-      <div class="modal-actions">
-        <button type="button" class="ghost-btn" onclick="toggleModal('modalTambahKelas')">Batal</button>
-        <button type="button" class="btn-buka" onclick="simpanKelasBaru()">Simpan</button>
+          <div class="form-group">
+            <label for="inputIsiPengumuman">Isi</label>
+            <textarea
+              id="inputIsiPengumuman"
+              rows="5"
+              placeholder="Isi pengumuman"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="ghost-btn"
+            onclick="toggleModal('modalTambahPengumuman')"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            class="btn-buka"
+            onclick="simpanPengumumanBaru()"
+          >
+            Simpan
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="modalTambahPengumuman" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:520px;">
-      <div class="modal-header">
-        <h2>Tambah Pengumuman</h2>
-        <button type="button" class="modal-close" onclick="toggleModal('modalTambahPengumuman')">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="inputJudulPengumuman">Judul</label>
-          <input type="text" id="inputJudulPengumuman" placeholder="Judul pengumuman">
+    <div id="modalTambahJadwal" class="modal-overlay" style="display: none">
+      <div class="modal-box" style="max-width: 520px">
+        <div class="modal-header">
+          <h2>Tambah Jadwal</h2>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="toggleModal('modalTambahJadwal')"
+          >
+            ✕
+          </button>
         </div>
 
-        <div class="form-group">
-          <label for="inputIsiPengumuman">Isi</label>
-          <textarea id="inputIsiPengumuman" rows="5" placeholder="Isi pengumuman"></textarea>
-        </div>
-      </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inputHariJadwal">Hari</label>
+            <input
+              type="text"
+              id="inputHariJadwal"
+              placeholder="Contoh: Senin"
+            />
+          </div>
 
-      <div class="modal-actions">
-        <button type="button" class="ghost-btn" onclick="toggleModal('modalTambahPengumuman')">Batal</button>
-        <button type="button" class="btn-buka" onclick="simpanPengumumanBaru()">Simpan</button>
+          <div class="form-group">
+            <label for="inputJamJadwal">Jam</label>
+            <input
+              type="text"
+              id="inputJamJadwal"
+              placeholder="Contoh: 08.00 - 09.30"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="inputKegiatanJadwal">Kegiatan</label>
+            <input
+              type="text"
+              id="inputKegiatanJadwal"
+              placeholder="Contoh: Pembahasan Bab 1"
+            />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="ghost-btn"
+            onclick="toggleModal('modalTambahJadwal')"
+          >
+            Batal
+          </button>
+          <button type="button" class="btn-buka" onclick="simpanJadwalBaru()">
+            Simpan
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-
-  <div id="modalTambahJadwal" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:520px;">
-      <div class="modal-header">
-        <h2>Tambah Jadwal</h2>
-        <button type="button" class="modal-close" onclick="toggleModal('modalTambahJadwal')">✕</button>
+    <!-- WIDGET AKSESIBILITAS -->
+    <div class="a11y-widget" id="a11yWidget">
+      <div class="a11y-panel" id="a11yPanel">
+        <p class="a11y-title">Fitur Aksesibilitas</p>
+        <button
+          onclick="toggleAccessibility('dark-mode')"
+          id="btn-dark"
+          class="a11y-item"
+        >
+          <span id="btn-dark-icon">🌙</span>
+          <span id="btn-dark-text">Mode Gelap</span>
+        </button>
+        <button
+          onclick="toggleAccessibility('high-contrast')"
+          id="btn-contrast"
+          class="a11y-item"
+        >
+          <span id="btn-contrast-icon">◐</span>
+          <span id="btn-contrast-text">Kontras Tinggi</span>
+        </button>
       </div>
-
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="inputHariJadwal">Hari</label>
-          <input type="text" id="inputHariJadwal" placeholder="Contoh: Senin">
-        </div>
-
-        <div class="form-group">
-          <label for="inputJamJadwal">Jam</label>
-          <input type="text" id="inputJamJadwal" placeholder="Contoh: 08.00 - 09.30">
-        </div>
-
-        <div class="form-group">
-          <label for="inputKegiatanJadwal">Kegiatan</label>
-          <input type="text" id="inputKegiatanJadwal" placeholder="Contoh: Pembahasan Bab 1">
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="ghost-btn" onclick="toggleModal('modalTambahJadwal')">Batal</button>
-        <button type="button" class="btn-buka" onclick="simpanJadwalBaru()">Simpan</button>
-      </div>
+      <button
+        class="a11y-toggle"
+        onclick="toggleA11yPanel()"
+        aria-label="Pengaturan Aksesibilitas"
+        title="Aksesibilitas"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="4.5" r="2.5" />
+          <path d="M12 7v6" />
+          <path d="M7 11.5l5 3 5-3" />
+          <path d="M7 16l5 3 5-3" />
+        </svg>
+      </button>
     </div>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="script.js"></script>
-</body>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="script.js"></script>
+  </body>
 </html>
