@@ -193,6 +193,8 @@ a {
   border-radius: clamp(10px, 1.5vw, 14px);
   color: #fff;
   background: #111827;
+  font-size: clamp(12px, 1.3vw, 14px);
+  font-weight: 700;
 }
 
 .btn-logout:hover {
@@ -1252,6 +1254,7 @@ select:focus {
   .btn-logout {
     flex: 1 1 calc(50% - 6px);
     text-align: center;
+    font-size: clamp(12px, 1.3vw, 14px) !important;
   }
 
   .section-header {
@@ -1368,6 +1371,11 @@ select:focus {
     padding: 10px 8px;
   }
 
+  .btn-logout {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    font-size: clamp(12px, 1.3vw, 14px) !important;
+  }
   .owner-actions {
     width: 100%;
     justify-content: flex-end;
