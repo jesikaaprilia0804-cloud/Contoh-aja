@@ -97,6 +97,7 @@ window.readFileAsDataURL = function (file) {
 /* ==========================================================
    3. AUTH FUNCTIONS
    ========================================================== */
+
 window.setRole = function (role) {
   selectedRole = role;
   document.querySelectorAll("#roleSwitch .role-btn").forEach((b) => {
@@ -111,6 +112,7 @@ window.setRegisterRole = function (role) {
   });
 };
 
+// FUNGSI REGISTER (Yang Benar - Pakai Firebase Auth)
 window.register = async function () {
   const fullName = document.getElementById("fullName")?.value.trim();
   const email = document.getElementById("registerEmail")?.value.trim();
@@ -126,22 +128,38 @@ window.register = async function () {
   }
 
   try {
-    await db.collection("users").add({
+    // 1. Buat Akun di Firebase Auth
+    const userCredential = await firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, pass);
+    const user = userCredential.user;
+
+    console.log("Register Auth Berhasil. UID:", user.uid);
+
+    // 2. Simpan Data Tambahan ke Firestore (ID Dokumen = UID User)
+    await db.collection("users").doc(user.uid).set({
       nama_lengkap: fullName,
       email: email,
-      password: pass,
       role: registerRole,
       foto_profile: "",
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    alert(`Pendaftaran berhasil sebagai ${registerRole}!`);
+    alert(`Pendaftaran berhasil sebagai ${registerRole}! Silakan login.`);
     window.showLogin();
   } catch (e) {
-    alert("Gagal simpan data: " + e.message);
+    console.error("Error Register:", e);
+    if (e.code === "auth/email-already-in-use") {
+      alert("Email sudah terdaftar. Gunakan email lain.");
+    } else if (e.code === "auth/weak-password") {
+      alert("Password terlalu lemah.");
+    } else {
+      alert("Gagal simpan data: " + e.message);
+    }
   }
 };
 
+// FUNGSI LOGIN (Belum ada di kodingan kamu, saya tambahkan)
 window.login = async function () {
   const email = document.getElementById("loginEmail")?.value.trim();
   const pass = document.getElementById("loginPass")?.value;
@@ -151,37 +169,82 @@ window.login = async function () {
   }
 
   try {
-    const snapshot = await db
-      .collection("users")
-      .where("email", "==", email)
-      .where("password", "==", pass)
-      .where("role", "==", selectedRole)
-      .get();
+    // 1. Login ke Firebase Auth
+    const userCredential = await firebase
+      .auth()
+      .signInWithEmailAndPassword(email, pass);
+    const user = userCredential.user;
 
-    if (snapshot.empty) {
-      return alert("Login gagal: akun tidak ditemukan atau role salah.");
+    console.log("Login Auth Berhasil. UID:", user.uid);
+
+    // 2. Ambil Data User dari Firestore
+    const userDoc = await db.collection("users").doc(user.uid).get();
+
+    if (!userDoc.exists) {
+      alert("Data profil tidak ditemukan. Hubungi admin.");
+      await firebase.auth().signOut();
+      return;
     }
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      localStorage.setItem(
-        "edusmartUser",
-        JSON.stringify({
-          nama_lengkap:
-            data.nama_lengkap || data.fullName || data.name || "Tidak ada nama",
-          email: data.email,
-          role: data.role,
-          foto_profile: data.foto_profile || "",
-        }),
-      );
-    });
+    const data = userDoc.data();
 
+    // 3. Cek Role (Sama tidak dengan tombol yang dipilih?)
+    if (data.role !== selectedRole) {
+      alert(
+        `Akun ini terdaftar sebagai ${data.role.toUpperCase()}, bukan sebagai ${selectedRole.toUpperCase()}.`,
+      );
+      await firebase.auth().signOut();
+      return;
+    }
+
+    // 4. Simpan ke LocalStorage agar ingat saat pindah halaman
+    localStorage.setItem(
+      "edusmartUser",
+      JSON.stringify({
+        nama_lengkap: data.nama_lengkap || data.fullName || "User",
+        email: data.email,
+        role: data.role,
+        foto_profile: data.foto_profile || "",
+        uid: user.uid,
+      }),
+    );
+
+    alert("Login Berhasil!");
     window.location.href = "dashboard.html";
   } catch (e) {
-    alert("Error koneksi: " + e.message);
+    console.error("Error Login:", e);
+    if (e.code === "auth/user-not-found" || e.code === "auth/wrong-password") {
+      alert("Email atau password salah.");
+    } else if (e.code === "auth/invalid-credential") {
+      alert("Email atau password salah (Invalid Credential).");
+    } else {
+      alert("Gagal login: " + e.message);
+    }
   }
 };
 
+window.showLogin = function () {
+  document.getElementById("loginForm")?.classList.remove("hidden");
+  document.getElementById("registerForm")?.classList.add("hidden");
+};
+
+window.showRegister = function () {
+  document.getElementById("loginForm")?.classList.add("hidden");
+  document.getElementById("registerForm")?.classList.remove("hidden");
+};
+
+window.togglePass = function (id, btn) {
+  const input = document.getElementById(id);
+  if (!input) return;
+
+  if (input.type === "password") {
+    input.type = "text";
+    if (btn) btn.textContent = "🔒";
+  } else {
+    input.type = "password";
+    if (btn) btn.textContent = "👁️";
+  }
+};
 /* ==========================================================
    4. UI NAVIGATION
    ========================================================== */
