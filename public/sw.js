@@ -1,32 +1,13 @@
-const CACHE_NAME = "edusmart";
-const urlsToCache = [
-  "/",
-  "/index.html",
-  "/dashboard.html",
-  "/kelas.html",
-  "/materi.html",
-  "/profil.html",
-  "/quiz.html",
-  "/style.css",
-  "/JS/script.js",
-];
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("Cache dibuka");
-      return cache.addAll(urlsToCache);
-    }),
-  );
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request);
-    }),
+    fetch(event.request).catch(() => caches.match(event.request)),
   );
 });

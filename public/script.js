@@ -1,3 +1,15 @@
+// PAKSA FULLSCREEN SAAT PWA DIBUKA
+document.addEventListener(
+  "click",
+  function forceFull() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {});
+    }
+    // Hapus event setelah berhasil terpicu sekali
+    document.removeEventListener("click", forceFull);
+  },
+  { once: true },
+);
 /* ==========================================================
    1. GLOBAL VARIABLES & CONFIG
    ========================================================== */
