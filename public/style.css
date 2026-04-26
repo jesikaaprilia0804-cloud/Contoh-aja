@@ -1223,320 +1223,40 @@ select:focus {
    RESPONSIVE — MOBILE (≤780px)
    ============================================================ */
 @media (max-width: 780px) {
-  /* ============================================================
-   SIDEBAR LAYOUT
-   ============================================================ */
-  .app-layout {
-    display: flex;
-    min-height: 100vh;
-    min-height: 100dvh;
+  .dashboard-page,
+  .auth-page {
+    padding: clamp(8px, 2.5vw, 14px);
   }
 
-  /* --- SIDEBAR --- */
-  .sidebar {
-    width: 240px;
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    border-right: 1px solid rgba(226, 232, 240, 0.8);
-    display: flex;
+  .topbar {
+    padding: clamp(12px, 3vw, 18px);
     flex-direction: column;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 100;
-    transition: transform 0.3s ease;
+    align-items: stretch;
   }
 
-  .sidebar-brand {
-    padding: 20px 18px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .sidebar-menu {
-    flex: 1;
-    padding: 12px 10px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .sidebar-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    color: var(--text-soft);
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s;
-    text-decoration: none;
-  }
-
-  .sidebar-item:hover {
-    background: var(--primary-soft);
-    color: var(--primary);
-  }
-
-  .sidebar-item.active {
-    background: var(--primary);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
-  }
-
-  .sidebar-item.active .sidebar-icon {
-    filter: brightness(2);
-  }
-
-  .sidebar-icon {
-    font-size: 20px;
-    width: 24px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .sidebar-text {
-    white-space: nowrap;
-  }
-
-  .sidebar-bottom {
-    padding: 12px 10px;
-    border-top: 1px solid var(--line);
-  }
-
-  .sidebar-logout {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: transparent;
-    color: #ef4444;
-    font-weight: 600;
-    font-size: 14px;
-    width: 100%;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    text-align: left;
-  }
-
-  .sidebar-logout:hover {
-    background: rgba(239, 68, 68, 0.08);
-  }
-
-  /* --- MAIN CONTENT --- */
-  .app-main {
-    flex: 1;
-    margin-left: 240px;
-    padding: 22px;
-    min-width: 0;
-  }
-
-  .dashboard-container {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  /* Toggle button (hanya mobile) */
-  .sidebar-toggle {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 150;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-    flex-direction: column;
+  .logo-area {
     justify-content: center;
-    gap: 5px;
-    padding: 0;
   }
 
-  .sidebar-toggle span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: #fff;
-    border-radius: 2px;
-    transition: 0.3s;
+  .menu {
+    width: 100%;
+    justify-content: center;
   }
 
-  .sidebar-toggle.open span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-  .sidebar-toggle.open span:nth-child(2) {
-    opacity: 0;
-  }
-  .sidebar-toggle.open span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
+  .menu-btn {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    justify-content: center;
+    display: flex;
+    align-items: center;
   }
 
-  /* Sidebar tertutup */
-  .sidebar.hidden {
-    transform: translateX(-100%);
+  .btn-logout {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    font-size: clamp(12px, 1.3vw, 14px) !important;
   }
 
-  /* ============================================================
-   RESPONSIVE — TABLET (≤1080px)
-   Sidebar tetap, konten menyusut
-   ============================================================ */
-  @media (max-width: 1080px) {
-    .sidebar {
-      width: 200px;
-    }
-
-    .app-main {
-      margin-left: 200px;
-    }
-  }
-
-  /* ============================================================
-   RESPONSIVE — MOBILE (≤780px)
-   Sidebar jadi bottom bar overlay
-   ============================================================ */
-  @media (max-width: 780px) {
-    .app-layout {
-      flex-direction: column;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: auto;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      height: auto;
-      border-right: none;
-      border-top: 1px solid var(--line);
-      border-radius: 24px 24px 0 0;
-      padding: 8px 8px 12px;
-      flex-direction: column;
-      z-index: 200;
-    }
-
-    .sidebar.hidden {
-      transform: translateY(100%);
-    }
-
-    .sidebar-brand {
-      display: none;
-    }
-
-    .sidebar-menu {
-      flex-direction: row;
-      gap: 4px;
-      padding: 0 4px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      justify-content: center;
-    }
-
-    .sidebar-item {
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 8px 6px 10px;
-      border-radius: 12px;
-      min-width: 0;
-      flex: 0 0 auto;
-    }
-
-    .sidebar-icon {
-      font-size: 22px;
-    }
-
-    .sidebar-text {
-      font-size: 10px;
-    }
-
-    .sidebar-bottom {
-      display: none;
-    }
-
-    .app-main {
-      margin-left: 0;
-      padding: 14px 14px 80px;
-    }
-
-    .sidebar-toggle {
-      display: flex;
-    }
-  }
-
-  /* ============================================================
-   DARK MODE — Sidebar
-   ============================================================ */
-  body.dark-mode .sidebar {
-    background: #1e293b;
-    border-right-color: #334155;
-    border-top-color: #334155;
-  }
-
-  body.dark-mode .sidebar-item:hover {
-    background: rgba(99, 102, 241, 0.15);
-  }
-
-  body.dark-mode .sidebar-item.active {
-    background: var(--primary);
-  }
-
-  body.dark-mode .sidebar-bottom {
-    border-top-color: #334155;
-  }
-
-  /* ============================================================
-   HIGH CONTRAST — Sidebar
-   ============================================================ */
-  body.high-contrast .sidebar {
-    background: #000;
-    border-right-color: #fff;
-    border-top-color: #fff;
-  }
-
-  body.high-contrast .sidebar-item {
-    border: 2px solid transparent;
-  }
-
-  body.high-contrast .sidebar-item:hover,
-  body.high-contrast .sidebar-item.active {
-    border-color: #fff;
-  }
-
-  body.high-contrast .sidebar-bottom {
-    border-top-color: #fff;
-  }
-
-  body.high-contrast .sidebar-toggle {
-    background: #fff;
-    color: #000;
-  }
-
-  body.high-contrast .sidebar-toggle span {
-    background: #000;
-  }
-
-  /* Safe area iPhone */
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    @media (max-width: 780px) {
-      .app-main {
-        padding-bottom: calc(80px + env(safe-area-inset-bottom));
-      }
-
-      .sidebar {
-        padding-bottom: calc(12px + env(safe-area-inset-bottom));
-      }
-    }
-  }
   .section-header {
     flex-direction: column;
     align-items: stretch;
