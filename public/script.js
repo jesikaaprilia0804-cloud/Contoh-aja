@@ -128,15 +128,15 @@ window.register = async function () {
   }
 
   try {
-    // 1. Buat Akun di Firebase Auth
+    // 1. Buat Akun Auth (Otomatis bikin UID)
     const userCredential = await firebase
       .auth()
       .createUserWithEmailAndPassword(email, pass);
     const user = userCredential.user;
 
-    console.log("Register Auth Berhasil. UID:", user.uid);
+    console.log("UID OTOMATIS:", user.uid); // Cek di Console kalau ragu
 
-    // 2. Simpan Data Tambahan ke Firestore (ID Dokumen = UID User)
+    // 2. Simpan ke Database dengan ID = UID
     await db.collection("users").doc(user.uid).set({
       nama_lengkap: fullName,
       email: email,
@@ -145,17 +145,11 @@ window.register = async function () {
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    alert(`Pendaftaran berhasil sebagai ${registerRole}! Silakan login.`);
+    alert(`Pendaftaran berhasil! Silakan login.`);
     window.showLogin();
   } catch (e) {
-    console.error("Error Register:", e);
-    if (e.code === "auth/email-already-in-use") {
-      alert("Email sudah terdaftar. Gunakan email lain.");
-    } else if (e.code === "auth/weak-password") {
-      alert("Password terlalu lemah.");
-    } else {
-      alert("Gagal simpan data: " + e.message);
-    }
+    console.error("Error:", e);
+    alert("Gagal daftar: " + e.message);
   }
 };
 
@@ -169,43 +163,37 @@ window.login = async function () {
   }
 
   try {
-    // 1. Login ke Firebase Auth
+    // 1. Cek Login ke Auth
     const userCredential = await firebase
       .auth()
       .signInWithEmailAndPassword(email, pass);
     const user = userCredential.user;
 
-    console.log("Login Auth Berhasil. UID:", user.uid);
-
-    // 2. Ambil Data User dari Firestore
+    // 2. Ambil Data dari Database menggunakan UID
     const userDoc = await db.collection("users").doc(user.uid).get();
 
     if (!userDoc.exists) {
-      alert("Data profil tidak ditemukan. Hubungi admin.");
-      await firebase.auth().signOut();
+      alert("Data profil tidak ditemukan.");
       return;
     }
 
     const data = userDoc.data();
 
-    // 3. Cek Role (Sama tidak dengan tombol yang dipilih?)
+    // Cek Role
     if (data.role !== selectedRole) {
-      alert(
-        `Akun ini terdaftar sebagai ${data.role.toUpperCase()}, bukan sebagai ${selectedRole.toUpperCase()}.`,
-      );
-      await firebase.auth().signOut();
+      alert(`Role salah. Akun ini adalah: ${data.role}`);
       return;
     }
 
-    // 4. Simpan ke LocalStorage agar ingat saat pindah halaman
+    // 3. Simpan ke LocalStorage
     localStorage.setItem(
       "edusmartUser",
       JSON.stringify({
-        nama_lengkap: data.nama_lengkap || data.fullName || "User",
+        nama_lengkap: data.nama_lengkap || "User",
         email: data.email,
         role: data.role,
+        uid: user.uid, // PENTING: Simpan UID
         foto_profile: data.foto_profile || "",
-        uid: user.uid,
       }),
     );
 
@@ -213,13 +201,7 @@ window.login = async function () {
     window.location.href = "dashboard.html";
   } catch (e) {
     console.error("Error Login:", e);
-    if (e.code === "auth/user-not-found" || e.code === "auth/wrong-password") {
-      alert("Email atau password salah.");
-    } else if (e.code === "auth/invalid-credential") {
-      alert("Email atau password salah (Invalid Credential).");
-    } else {
-      alert("Gagal login: " + e.message);
-    }
+    alert("Gagal login: " + e.message);
   }
 };
 
@@ -2333,7 +2315,7 @@ window.simpanPerubahanProfil = async function () {
   const errorBox = document.getElementById("profileErrorMsg");
   if (errorBox) errorBox.textContent = "";
 
-  if (!currentUser.email) {
+  if (!currentUser.email || !currentUser.uid) {
     window.location.href = "index.html";
     return;
   }
@@ -2356,7 +2338,6 @@ window.simpanPerubahanProfil = async function () {
       if (errorBox) errorBox.textContent = "Konfirmasi password tidak cocok.";
       return;
     }
-
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
     if (!passwordRegex.test(passwordBaru)) {
@@ -2368,15 +2349,18 @@ window.simpanPerubahanProfil = async function () {
   }
 
   try {
-    const userDoc = await findCurrentUserDoc();
-    if (!userDoc) {
+    const userDocRef = db.collection("users").doc(currentUser.uid);
+    const doc = await userDocRef.get();
+
+    if (!doc.exists) {
       if (errorBox) errorBox.textContent = "Data user tidak ditemukan.";
       return;
     }
 
+    const data = doc.data();
     const oldEmail = currentUser.email;
     const oldName = getNamaUser(currentUser);
-    let fotoProfileBaru = currentUser.foto_profile || "";
+    let fotoProfileBaru = data.foto_profile || "";
 
     if (fotoFile) {
       const maxSize = 500 * 1024;
@@ -2384,168 +2368,168 @@ window.simpanPerubahanProfil = async function () {
         if (errorBox) errorBox.textContent = "Ukuran foto maksimal 500 KB.";
         return;
       }
-
-      fotoProfileBaru = await readImageAsDataURL(fotoFile);
+      fotoProfileBaru = await readFileAsDataURL(fotoFile);
     }
 
-    // Cek email baru apakah sudah dipakai user lain
+    // Cek email baru lewat Auth (Lebih aman dan tidak butuh Rules akses semua user)
     if (emailBaru !== oldEmail) {
-      const emailCheck = await db
-        .collection("users")
-        .where("email", "==", emailBaru)
-        .get();
-
-      const dipakaiUserLain = emailCheck.docs.some(
-        (doc) => doc.id !== userDoc.id,
-      );
-      if (dipakaiUserLain) {
-        if (errorBox) errorBox.textContent = "Email sudah digunakan akun lain.";
-        return;
+      try {
+        const methods = await firebase
+          .auth()
+          .fetchSignInMethodsForEmail(emailBaru);
+        if (methods.length > 0) {
+          if (errorBox)
+            errorBox.textContent = "Email sudah digunakan akun lain.";
+          return;
+        }
+      } catch (e) {
+        /* Email unik (aman) */
       }
     }
 
-    // update user utama
+    // 1. Update Profil Utama
     const updateUserData = {
       nama_lengkap: namaBaru,
       email: emailBaru,
       foto_profile: fotoProfileBaru,
     };
-
     if (passwordBaru) {
       updateUserData.password = passwordBaru;
     }
+    await userDocRef.update(updateUserData);
 
-    await db.collection("users").doc(userDoc.id).update(updateUserData);
-
-    // update data kelas milik guru
-    const kelasGuruSnap = await db
-      .collection("kelas")
-      .where("guru_email", "==", oldEmail)
-      .get();
-
-    for (const doc of kelasGuruSnap.docs) {
-      await doc.ref.update({
-        guru_email: emailBaru,
-        guru_nama: namaBaru,
-      });
-    }
-
-    // update data siswa_terdaftar di semua kelas
-    const semuaKelasSnap = await db.collection("kelas").get();
-    for (const doc of semuaKelasSnap.docs) {
-      const data = doc.data();
-      const siswa = data.siswa_terdaftar || [];
-      let berubah = false;
-
-      const siswaBaru = siswa.map((item) => {
-        if (item.email === oldEmail) {
-          berubah = true;
-          return {
-            ...item,
-            nama: namaBaru,
-            email: emailBaru,
-          };
-        }
-        return item;
-      });
-
-      if (berubah) {
-        await doc.ref.update({
-          siswa_terdaftar: siswaBaru,
+    // 2. Update Data Historis (Jika ada perubahan email/nama)
+    if (emailBaru !== oldEmail || namaBaru !== oldName) {
+      // A. Update Kelas (Guru)
+      const kelasGuruSnap = await db
+        .collection("kelas")
+        .where("guru_email", "==", oldEmail)
+        .get();
+      const batchKelas = db.batch();
+      kelasGuruSnap.docs.forEach((d) => {
+        batchKelas.update(d.ref, {
+          guru_email: emailBaru,
+          guru_nama: namaBaru,
         });
+      });
+      await batchKelas.commit();
+
+      // B. Update Kelas (Siswa di list)
+      const semuaKelasSnap = await db.collection("kelas").get();
+      for (const doc of semuaKelasSnap.docs) {
+        const data = doc.data();
+        const siswa = data.siswa_terdaftar || [];
+        const siswaBaru = siswa.map((s) =>
+          s.email === oldEmail ? { ...s, nama: namaBaru, email: emailBaru } : s,
+        );
+
+        if (JSON.stringify(siswa) !== JSON.stringify(siswaBaru)) {
+          await doc.ref.update({ siswa_terdaftar: siswaBaru });
+        }
+      }
+
+      // C. Update Materi
+      // PERBAIKAN: Gunakan batch agar lebih cepat dan aman sesuai Rules
+      const materiSnap = await db
+        .collection("materi")
+        .where("email_pengunggah", "==", oldEmail)
+        .get();
+      const batchMateri = db.batch();
+      materiSnap.docs.forEach((d) => {
+        batchMateri.update(d.ref, {
+          email_pengunggah: emailBaru,
+          nama_pengunggah: namaBaru,
+        });
+      });
+      await batchMateri.commit();
+
+      // D. Update Pengumuman
+      const pengumumanSnap = await db
+        .collection("pengumuman")
+        .where("dibuat_oleh_email", "==", oldEmail)
+        .get();
+      const batchPengumuman = db.batch();
+      pengumumanSnap.docs.forEach((d) => {
+        batchPengumuman.update(d.ref, {
+          dibuat_oleh_email: emailBaru,
+          dibuat_oleh_nama: namaBaru,
+        });
+      });
+      await batchPengumuman.commit();
+
+      // E. Update Jadwal
+      const jadwalSnap = await db
+        .collection("jadwal")
+        .where("dibuat_oleh_email", "==", oldEmail)
+        .get();
+      const batchJadwal = db.batch();
+      jadwalSnap.docs.forEach((d) => {
+        batchJadwal.update(d.ref, {
+          dibuat_oleh_email: emailBaru,
+          dibuat_oleh_nama: namaBaru,
+        });
+      });
+      await batchJadwal.commit();
+
+      // F. Update Quiz
+      // PERBAIKAN: Gunakan batch
+      const quizPembuatSnap = await db
+        .collection("quizzes")
+        .where("pembuat", "==", oldEmail)
+        .get();
+      const batchQuiz = db.batch();
+      quizPembuatSnap.docs.forEach((d) => {
+        batchQuiz.update(d.ref, { pembuat: emailBaru, pembuat_nama: namaBaru });
+      });
+      await batchQuiz.commit();
+
+      // G. Update Hasil Quiz
+      const semuaQuizSnap = await db.collection("quizzes").get();
+      for (const doc of semuaQuizSnap.docs) {
+        const data = doc.data();
+        const hasil = data.hasil_siswa || [];
+        const hasilBaru = hasil.map((h) =>
+          h.email === oldEmail ? { ...h, nama: namaBaru, email: emailBaru } : h,
+        );
+
+        if (JSON.stringify(hasil) !== JSON.stringify(hasilBaru)) {
+          await doc.ref.update({ hasil_siswa: hasilBaru });
+        }
       }
     }
 
-    // update materi
-    const materiSnap = await db
-      .collection("materi")
-      .where("email_pengunggah", "==", oldEmail)
-      .get();
-
-    for (const doc of materiSnap.docs) {
-      await doc.ref.update({
-        email_pengunggah: emailBaru,
-        nama_pengunggah: namaBaru,
-      });
-    }
-
-    // update pengumuman
-    const pengumumanSnap = await db
-      .collection("pengumuman")
-      .where("dibuat_oleh_email", "==", oldEmail)
-      .get();
-
-    for (const doc of pengumumanSnap.docs) {
-      await doc.ref.update({
-        dibuat_oleh_email: emailBaru,
-        dibuat_oleh_nama: namaBaru,
-      });
-    }
-
-    // update jadwal
-    const jadwalSnap = await db
-      .collection("jadwal")
-      .where("dibuat_oleh_email", "==", oldEmail)
-      .get();
-
-    for (const doc of jadwalSnap.docs) {
-      await doc.ref.update({
-        dibuat_oleh_email: emailBaru,
-        dibuat_oleh_nama: namaBaru,
-      });
-    }
-
-    // update quiz pembuat
-    const quizPembuatSnap = await db
-      .collection("quizzes")
-      .where("pembuat", "==", oldEmail)
-      .get();
-
-    for (const doc of quizPembuatSnap.docs) {
-      await doc.ref.update({
-        pembuat: emailBaru,
-        pembuat_nama: namaBaru,
-      });
-    }
-
-    // update hasil_siswa di quiz
-    const semuaQuizSnap = await db.collection("quizzes").get();
-    for (const doc of semuaQuizSnap.docs) {
-      const data = doc.data();
-      const hasil = data.hasil_siswa || [];
-      let berubah = false;
-
-      const hasilBaru = hasil.map((item) => {
-        if (item.email === oldEmail) {
-          berubah = true;
-          return {
-            ...item,
-            nama: namaBaru,
-            email: emailBaru,
-          };
+    // 3. Update Firebase Auth (Email & Password)
+    const userAuth = firebase.auth().currentUser;
+    if (userAuth) {
+      if (emailBaru !== oldEmail) {
+        try {
+          await userAuth.updateEmail(emailBaru);
+        } catch (e) {
+          console.warn("Gagal update email Auth", e);
         }
-        return item;
-      });
-
-      if (berubah) {
-        await doc.ref.update({
-          hasil_siswa: hasilBaru,
-        });
+      }
+      if (passwordBaru) {
+        try {
+          await userAuth.updatePassword(passwordBaru);
+        } catch (e) {
+          console.warn("Gagal update password Auth", e);
+        }
       }
     }
 
-    // update localStorage
+    // 4. Update LocalStorage
     const userBaru = {
       ...currentUser,
       nama_lengkap: namaBaru,
       email: emailBaru,
       foto_profile: fotoProfileBaru,
     };
-
     localStorage.setItem("edusmartUser", JSON.stringify(userBaru));
 
     alert("Profil berhasil diperbarui.");
     initProfilePage();
+
+    // Reset Form
     if (document.getElementById("editPasswordBaru"))
       document.getElementById("editPasswordBaru").value = "";
     if (document.getElementById("editKonfirmasiPassword"))
@@ -2554,7 +2538,8 @@ window.simpanPerubahanProfil = async function () {
       document.getElementById("editFotoProfil").value = "";
   } catch (e) {
     console.error("Gagal memperbarui profil:", e);
-    if (errorBox) errorBox.textContent = "Gagal memperbarui profil.";
+    if (errorBox)
+      errorBox.textContent = "Gagal memperbarui profil: " + e.message;
   }
 };
 
